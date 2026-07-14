@@ -721,6 +721,12 @@ max-width:280px;
 
   <footer>
     <div class="ig-link"><a href="https://www.instagram.com/iamhere_mama" target="_blank" rel="noopener">made by 有意識生活練習 邱愣 @iamhere_mama</a></div>
+    <div id="visitorStats" style="margin:18px auto 0;text-align:center;color:#5c574f;font-size:13px;line-height:1.9;">
+      🌸 今日訪客：<span id="todayVisitors">--</span> 人<br>
+      🙏 累積訪客：<span id="totalVisitors">--</span> 人<br>
+      📿 全站累積持咒遍數：<span id="mantraTotalCount">--</span> 遍<br>
+      🪷 完成 108 遍人數：<span id="completion108Count">--</span> 人
+    </div>
   </footer>
 </div>
 
@@ -964,8 +970,10 @@ function addCount(){
   total++;
   totalNum.textContent = total;
   updateGoalProgress();
+  if (window.recordMantraTap) window.recordMantraTap();
   if (goal > 0 && total >= goal && !goalCelebrated){
     goalCelebrated = true;
+    if (goal === 108 && window.recordCompletion108) window.recordCompletion108();
     showCompletionScreen();
   }
 }
@@ -1058,6 +1066,93 @@ function setMode(active){
 modePhrase.addEventListener('click', ()=> setMode({btn: modePhrase}));
 modeCount.addEventListener('click', ()=> setMode({btn: modeCount}));
 modeDedication.addEventListener('click', ()=> setMode({btn: modeDedication}));
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  increment
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDfZluyCMw5kRpD4VmWNZ-LVpup3-5Cr3Y",
+  authDomain: "cundi-counter.firebaseapp.com",
+  projectId: "cundi-counter",
+  storageBucket: "cundi-counter.firebasestorage.app",
+  messagingSenderId: "637046336391",
+  appId: "1:637046336391:web:15a49c1857fbe85a678122"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const todayKey = new Date().toISOString().slice(0, 10);
+const totalVisitorRef = doc(db, "stats", "visitor_total");
+const todayVisitorRef = doc(db, "stats", "day_" + todayKey);
+const mantraTotalRef = doc(db, "stats", "mantra_total");
+const completion108Ref = doc(db, "stats", "completed108_total");
+
+async function ensureCount(ref){
+  const snap = await getDoc(ref);
+  if (!snap.exists()){
+    await setDoc(ref, { count: 0 });
+    return 0;
+  }
+  return snap.data().count || 0;
+}
+
+const todayVisitorsEl = document.getElementById('todayVisitors');
+const totalVisitorsEl = document.getElementById('totalVisitors');
+const mantraTotalEl = document.getElementById('mantraTotalCount');
+const completion108El = document.getElementById('completion108Count');
+
+(async () => {
+  const stamp = "visitor-" + todayKey;
+  const firstToday = !localStorage.getItem(stamp);
+
+  let [totalVisitors, todayVisitors, mantraTotal, completion108] = await Promise.all([
+    ensureCount(totalVisitorRef),
+    ensureCount(todayVisitorRef),
+    ensureCount(mantraTotalRef),
+    ensureCount(completion108Ref)
+  ]);
+
+  if (firstToday){
+    await Promise.all([
+      updateDoc(totalVisitorRef, { count: increment(1) }),
+      updateDoc(todayVisitorRef, { count: increment(1) })
+    ]);
+    localStorage.setItem(stamp, "1");
+    totalVisitors++;
+    todayVisitors++;
+  }
+
+  todayVisitorsEl.textContent = todayVisitors;
+  totalVisitorsEl.textContent = totalVisitors;
+  mantraTotalEl.textContent = mantraTotal;
+  completion108El.textContent = completion108;
+})();
+
+window.recordMantraTap = function(){
+  updateDoc(mantraTotalRef, { count: increment(1) }).catch(()=>{});
+  if (mantraTotalEl){
+    const current = parseInt(mantraTotalEl.textContent, 10) || 0;
+    mantraTotalEl.textContent = current + 1;
+  }
+};
+
+window.recordCompletion108 = function(){
+  updateDoc(completion108Ref, { count: increment(1) }).catch(()=>{});
+  if (completion108El){
+    const current = parseInt(completion108El.textContent, 10) || 0;
+    completion108El.textContent = current + 1;
+  }
+};
 </script>
 
 </body>
