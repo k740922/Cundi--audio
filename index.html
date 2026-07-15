@@ -704,7 +704,7 @@ max-width:280px;
 
   <div id="completionModal" class="completion-overlay" style="display:none;">
     <div class="completion-card" id="completionCard">
-      <img src="bg.jpeg" class="completion-bg-img" alt="">
+      <img src="completion-bg.png" class="completion-bg-img" alt="">
       <div class="completion-mark">卍</div>
       <div class="completion-title">持咒圓滿</div>
       <div class="completion-goal" id="completionGoalText">108 遍</div>
@@ -1084,7 +1084,7 @@ async function buildCompletionImageBlob(goalVal, dateStr){
   ctx.fillStyle = '#2b2926';
   ctx.fillRect(0, 0, W, H);
 
-  const img = await loadImage('bg.jpeg');
+  const img = await loadImage('completion-bg.png');
   drawCover(ctx, img, W, H, 0.5, 0.2);
 
   const gradA = ctx.createLinearGradient(0, 0, 0, H);
