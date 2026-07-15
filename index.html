@@ -594,8 +594,6 @@ max-width:280px;
 }
 </style>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
 </head>
 <body>
 <div class="wrap">
@@ -1003,6 +1001,178 @@ document.getElementById('closeCompletionBtn').addEventListener('click', ()=>{
   document.getElementById('completionModal').style.display = 'none';
 });
 
+function loadImage(src){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = ()=> resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+function drawCover(ctx, img, w, h, posX, posY){
+  const boxRatio = w / h;
+  const imgRatio = img.width / img.height;
+  let sw, sh, sx, sy;
+  if (imgRatio > boxRatio){
+    sh = img.height;
+    sw = sh * boxRatio;
+    sx = (img.width - sw) * posX;
+    sy = 0;
+  } else {
+    sw = img.width;
+    sh = sw / boxRatio;
+    sx = 0;
+    sy = (img.height - sh) * posY;
+  }
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h);
+}
+
+function roundRectPath(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function textToWrapAtoms(text){
+  const atoms = [];
+  text.split(' ').forEach((word, i) => {
+    if (i > 0) atoms.push(' ');
+    if (/[㐀-鿿぀-ヿ＀-￯]/.test(word)){
+      Array.from(word).forEach(ch => atoms.push(ch));
+    } else {
+      atoms.push(word);
+    }
+  });
+  return atoms;
+}
+
+function wrapCanvasText(ctx, text, maxWidth){
+  const atoms = textToWrapAtoms(text);
+  const lines = [];
+  let line = '';
+  for (const atom of atoms){
+    const test = line + atom;
+    if (line.trim() && ctx.measureText(test).width > maxWidth){
+      lines.push(line.trim());
+      line = atom === ' ' ? '' : atom;
+    } else {
+      line = test;
+    }
+  }
+  if (line.trim()) lines.push(line.trim());
+  return lines;
+}
+
+async function buildCompletionImageBlob(goalVal, dateStr){
+  const SCALE = 3;
+  const W = 320 * SCALE;
+  const H = Math.round(320 * 14 / 9) * SCALE;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  roundRectPath(ctx, 0, 0, W, H, 24 * SCALE);
+  ctx.clip();
+
+  ctx.fillStyle = '#2b2926';
+  ctx.fillRect(0, 0, W, H);
+
+  const img = await loadImage('bg.jpeg');
+  drawCover(ctx, img, W, H, 0.5, 0.2);
+
+  const gradA = ctx.createLinearGradient(0, 0, 0, H);
+  gradA.addColorStop(0, 'rgba(20,17,14,0.4)');
+  gradA.addColorStop(0.4, 'rgba(20,17,14,0.3)');
+  gradA.addColorStop(1, 'rgba(15,13,11,0.85)');
+  ctx.fillStyle = gradA;
+  ctx.fillRect(0, 0, W, H);
+
+  const gradB = ctx.createRadialGradient(W / 2, H, 0, W / 2, H, H * 0.6);
+  gradB.addColorStop(0, 'rgba(20,17,14,0.55)');
+  gradB.addColorStop(1, 'rgba(20,17,14,0)');
+  ctx.fillStyle = gradB;
+  ctx.fillRect(0, 0, W, H);
+
+  if (document.fonts && document.fonts.load){
+    await Promise.all([
+      document.fonts.load(`900 ${26 * SCALE}px "Noto Serif TC"`),
+      document.fonts.load(`italic 700 ${44 * SCALE}px "Cormorant Garamond"`),
+      document.fonts.load(`italic ${14 * SCALE}px "Cormorant Garamond"`),
+      document.fonts.load(`600 ${12 * SCALE}px "Noto Sans TC"`)
+    ]).catch(()=>{});
+  }
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+
+  const centerX = W / 2;
+  const padBottom = 36 * SCALE;
+  ctx.font = `600 ${12 * SCALE}px "Noto Sans TC", sans-serif`;
+  const igLines = wrapCanvasText(ctx, 'made by 有意識生活練習 邱愣 @iamhere_mama', 240 * SCALE);
+
+  const blockLineHeights = [
+    34 * SCALE * 1.1,
+    26 * SCALE * 1.2,
+    44 * SCALE * 1.2,
+    14 * SCALE * 1.3,
+    12 * SCALE * 1.3,
+    ...igLines.map(()=> 12 * SCALE * 1.4)
+  ];
+  const gaps = [8 * SCALE, 8 * SCALE, 8 * SCALE, 14 * SCALE, 6 * SCALE, ...igLines.slice(1).map(()=> 2 * SCALE)];
+  const totalHeight = blockLineHeights.reduce((a, b) => a + b, 0) + gaps.reduce((a, b) => a + b, 0);
+
+  let y = H - padBottom - totalHeight;
+
+  ctx.fillStyle = 'rgba(169,139,93,0.9)';
+  ctx.font = `${34 * SCALE}px "Noto Sans TC", sans-serif`;
+  y += blockLineHeights[0];
+  ctx.fillText('卍', centerX, y);
+  y += gaps[0];
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `900 ${26 * SCALE}px "Noto Serif TC", serif`;
+  y += blockLineHeights[1];
+  ctx.fillText('持咒圓滿', centerX, y);
+  y += gaps[1];
+
+  ctx.fillStyle = '#a98b5d';
+  ctx.font = `italic 700 ${44 * SCALE}px "Cormorant Garamond", serif`;
+  y += blockLineHeights[2];
+  ctx.fillText(`${goalVal} 遍`, centerX, y);
+  y += gaps[2];
+
+  ctx.fillStyle = 'rgba(255,255,255,0.75)';
+  ctx.font = `italic ${14 * SCALE}px "Cormorant Garamond", serif`;
+  y += blockLineHeights[3];
+  ctx.fillText('準提咒・CUNDĪ DHĀRAṆĪ', centerX, y);
+  y += gaps[3];
+
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.font = `${12 * SCALE}px "Noto Sans TC", sans-serif`;
+  y += blockLineHeights[4];
+  ctx.fillText(dateStr, centerX, y);
+  y += gaps[4];
+
+  ctx.fillStyle = '#a98b5d';
+  ctx.font = `600 ${12 * SCALE}px "Noto Sans TC", sans-serif`;
+  igLines.forEach((line, i)=>{
+    y += blockLineHeights[5 + i];
+    ctx.fillText(line, centerX, y);
+    if (i < igLines.length - 1){
+      y += gaps[5 + i];
+    }
+  });
+
+  return await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+}
+
 document.getElementById('shareCompletionBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('shareCompletionBtn');
   const originalLabel = btn.textContent;
@@ -1010,14 +1180,8 @@ document.getElementById('shareCompletionBtn').addEventListener('click', async ()
   btn.disabled = true;
 
   try {
-    const cardEl = document.getElementById('completionCard');
-    const canvas = await html2canvas(cardEl, {
-      useCORS: true,
-      backgroundColor: null,
-      scale: 2
-    });
-
-    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    const dateStr = document.getElementById('completionDate').textContent;
+    const blob = await buildCompletionImageBlob(goal, dateStr);
     const fileName = `準提咒持咒圓滿_${goal}遍.png`;
     const file = new File([blob], fileName, { type: 'image/png' });
     const shareText = `我今日圓滿持誦準提佛母心咒 ${goal} 遍 🙏 有意識生活練習 邱愣 @iamhere_mama`;
