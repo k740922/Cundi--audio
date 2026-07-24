@@ -229,7 +229,7 @@
 <main>
   <div class="eyebrow">Today's Message</div>
   <h1 id="titleText">今日訊息</h1>
-  <p class="sub" id="subText">靜下心，點選卡牌，抽一張屬於今天的訊息</p>
+  <p class="sub" id="subText">靜下心，點選卡牌<br>抽一張屬於今天的訊息</p>
 
   <div class="stage" id="stage">
     <div class="deco deco1"></div>
@@ -365,7 +365,7 @@
     card.classList.remove('can-tap');
     flipCardTo(() => { stage.classList.remove('landscape'); renderFacedown(); });
     titleText.textContent = '今日訊息';
-    subText.textContent = '靜下心，點選卡牌，抽一張屬於今天的訊息';
+    subText.innerHTML = '靜下心，點選卡牌<br>抽一張屬於今天的訊息';
     hint.classList.remove('show');
     drawBtn.hidden = false;
     drawBtn.disabled = false;
