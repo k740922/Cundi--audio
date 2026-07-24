@@ -36,9 +36,7 @@
     align-items:center;
     margin-bottom: 1.5rem;
   }
-  .brand-mark{ display:flex; flex-direction:column; line-height:1; }
-  .brand-mark .mark{ font-family:'Noto Serif TC', serif; font-size:1.3rem; letter-spacing:0.03em; color:#f2e8d8; }
-  .brand-mark .tagline{ font-size:0.5rem; letter-spacing:0.4em; color:#c9b493; margin-top:0.35rem; text-transform:uppercase; }
+  .brand-mark{ height: 32px; width: auto; display:block; }
   .back-link{
     font-size:0.78rem; letter-spacing:0.1em; color:#e6d9c2;
     text-decoration:none; border-bottom:1px solid rgba(230,217,194,0.5); padding-bottom:2px;
@@ -211,18 +209,12 @@
     justify-content:center;
   }
 
-  @media (prefers-reduced-motion: reduce){
-    *{ animation:none !important; transition:none !important; }
-  }
 </style>
 </head>
 <body>
 
 <header class="nav">
-  <div class="brand-mark">
-    <div class="mark">00:00</div>
-    <div class="tagline">A New Day</div>
-  </div>
+  <img src="assets/header-logo.png" alt="00:00 A New Day" class="brand-mark">
   <a href="index.html" class="back-link">← 回首頁</a>
 </header>
 
