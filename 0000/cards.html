@@ -233,7 +233,7 @@
 
   <p class="hint" id="hint"></p>
 
-  <button class="cta-btn" id="drawBtn" type="button">抽一張今日訊息卡</button>
+  <button class="cta-btn" id="drawBtn" type="button">抽一張 Moment 卡</button>
 
   <div class="actions">
     <button class="cta-btn ghost" id="againBtn" type="button" hidden>再抽一張</button>
@@ -331,7 +331,7 @@
     card.classList.add('can-tap');
     titleText.textContent = '今日訊息';
     subText.textContent = '這是屬於你今天的一張卡';
-    hint.textContent = '輕觸卡牌，獲得你今天的專屬訊息';
+    hint.textContent = '輕觸卡片，翻開此刻需要的訊息與儀式';
     hint.classList.add('show');
     drawBtn.hidden = true;
     againBtn.hidden = true;
@@ -342,13 +342,26 @@
   async function revealBack(){
     if (state !== 'front') return;
     state = 'back';
-    card.classList.remove('can-tap');
+    hint.classList.remove('show');
     const n = parseInt(card.dataset.drawn, 10);
     await flipCardTo(() => { stage.classList.add('landscape'); renderBack(n); });
 
-    hint.classList.remove('show');
-    subText.textContent = '願這份訊息，陪你度過今天';
+    subText.textContent = '願這份訊息，陪你度過此刻。';
+    hint.textContent = '輕觸卡片，翻回正面';
+    hint.classList.add('show');
     againBtn.hidden = false;
+  }
+
+  async function revealFront(){
+    if (state !== 'back') return;
+    state = 'front';
+    hint.classList.remove('show');
+    const n = parseInt(card.dataset.drawn, 10);
+    await flipCardTo(() => { stage.classList.remove('landscape'); renderFront(n); });
+
+    subText.textContent = '這是屬於你今天的一張卡';
+    hint.textContent = '輕觸卡片，翻開此刻需要的訊息與儀式';
+    hint.classList.add('show');
   }
 
   function resetDeck(){
@@ -368,6 +381,7 @@
   againBtn.addEventListener('click', resetDeck);
   card.addEventListener('click', () => {
     if (state === 'front') revealBack();
+    else if (state === 'back') revealFront();
   });
 </script>
 
