@@ -262,6 +262,23 @@
   let state = 'idle'; // idle -> revealing -> front -> back
   let lastDrawn = null;
 
+  const loadedImages = new Set();
+  function preloadImage(src){
+    return new Promise(resolve => {
+      if (loadedImages.has(src)){ resolve(); return; }
+      const img = new Image();
+      img.onload = () => { loadedImages.add(src); resolve(); };
+      img.onerror = () => resolve();
+      img.src = src;
+    });
+  }
+
+  for (let n = 1; n <= TOTAL_CARDS; n++){
+    const nn = String(n).padStart(2, '0');
+    preloadImage(`assets/cards/card-${nn}-front.jpg`);
+    preloadImage(`assets/cards/card-${nn}-back.jpg`);
+  }
+
   function pickCard(){
     let n;
     do { n = 1 + Math.floor(Math.random() * TOTAL_CARDS); }
@@ -273,16 +290,16 @@
   function flipCardTo(renderFn, { instant } = {}){
     return new Promise(resolve => {
       if (instant){
-        renderFn();
-        resolve();
+        Promise.resolve(renderFn()).then(resolve);
         return;
       }
       card.classList.add('flipping');
       card.style.transform = 'rotateY(90deg) scale(0.96)';
       setTimeout(() => {
-        renderFn();
-        card.style.transform = 'rotateY(0deg) scale(1)';
-        setTimeout(resolve, 260);
+        Promise.resolve(renderFn()).then(() => {
+          card.style.transform = 'rotateY(0deg) scale(1)';
+          setTimeout(resolve, 260);
+        });
       }, 260);
     });
   }
@@ -291,12 +308,16 @@
     cardFace.innerHTML = '';
   }
 
-  function renderFront(n){
-    cardFace.innerHTML = `<img src="assets/cards/card-${String(n).padStart(2,'0')}-front.jpg" alt="00:00 能量卡 第${n}張 正面">`;
+  async function renderFront(n){
+    const src = `assets/cards/card-${String(n).padStart(2,'0')}-front.jpg`;
+    await preloadImage(src);
+    cardFace.innerHTML = `<img src="${src}" alt="00:00 能量卡 第${n}張 正面">`;
   }
 
-  function renderBack(n){
-    cardFace.innerHTML = `<img src="assets/cards/card-${String(n).padStart(2,'0')}-back.jpg" alt="00:00 能量卡 第${n}張 今日訊息">`;
+  async function renderBack(n){
+    const src = `assets/cards/card-${String(n).padStart(2,'0')}-back.jpg`;
+    await preloadImage(src);
+    cardFace.innerHTML = `<img src="${src}" alt="00:00 能量卡 第${n}張 今日訊息">`;
   }
 
   async function startDraw(){
