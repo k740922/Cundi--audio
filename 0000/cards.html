@@ -48,7 +48,7 @@
   main{
     flex:1;
     width:100%;
-    max-width:460px;
+    max-width:660px;
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -87,7 +87,7 @@
     perspective: 1400px;
   }
   .stage.landscape{
-    width: min(94vw, 440px);
+    width: min(96vw, 640px);
     aspect-ratio: 960 / 599;
   }
 
@@ -96,7 +96,7 @@
     inset:0;
     border-radius:16px;
     overflow:hidden;
-    background: url('assets/card-back.jpg') center / cover no-repeat;
+    background: #2d313d url('assets/card-back.jpg') center / contain no-repeat;
     border:1px solid rgba(242,232,216,0.18);
     box-shadow: 0 10px 30px rgba(0,0,0,0.35);
     transition: transform .5s ease, opacity .5s ease;
@@ -145,7 +145,7 @@
     border-radius:16px;
     overflow:hidden;
     cursor:pointer;
-    background: url('assets/card-back.jpg') center / cover no-repeat;
+    background: #2d313d url('assets/card-back.jpg') center / contain no-repeat;
     border:1px solid rgba(242,232,216,0.25);
     box-shadow: 0 16px 40px rgba(0,0,0,0.45);
     display:flex;
