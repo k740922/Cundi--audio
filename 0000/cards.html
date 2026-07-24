@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>今日訊息 | 00:00 能量卡</title>
+<link rel="icon" href="assets/logo-mark.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Noto+Sans+TC:wght@300;400;500;600&display=swap');
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html, body{
+    width:100%; min-height:100vh;
+    background: radial-gradient(circle at 50% 26%, #a17d54 0%, #7c5c3c 28%, #4a3626 60%, #201811 100%);
+    color:#f2e8d8;
+    font-family:'Noto Sans TC', 'Noto Serif TC', serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  body{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    min-height:100vh;
+    padding: 2rem 1.25rem 4rem;
+  }
+
+  header.nav{
+    width:100%;
+    max-width:640px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom: 1.5rem;
+  }
+  .brand-mark{ display:flex; flex-direction:column; line-height:1; }
+  .brand-mark .mark{ font-family:'Noto Serif TC', serif; font-size:1.3rem; letter-spacing:0.03em; color:#f2e8d8; }
+  .brand-mark .tagline{ font-size:0.5rem; letter-spacing:0.4em; color:#c9b493; margin-top:0.35rem; text-transform:uppercase; }
+  .back-link{
+    font-size:0.78rem; letter-spacing:0.1em; color:#e6d9c2;
+    text-decoration:none; border-bottom:1px solid rgba(230,217,194,0.5); padding-bottom:2px;
+    white-space:nowrap;
+  }
+
+  main{
+    flex:1;
+    width:100%;
+    max-width:420px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+  }
+
+  .eyebrow{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    letter-spacing:0.15em;
+    color:#d8c3a0;
+    font-size:0.95rem;
+    margin-bottom:0.4rem;
+  }
+  h1{
+    font-family:'Noto Serif TC', serif;
+    font-weight:900;
+    font-size:clamp(1.7rem, 6vw, 2.3rem);
+    letter-spacing:0.08em;
+    color:#f7efe1;
+  }
+  .sub{
+    margin-top:0.7rem;
+    font-size:0.9rem;
+    color:#d8c3a0;
+    letter-spacing:0.03em;
+    max-width:30ch;
+  }
+
+  /* ---- card stage ---- */
+  .stage{
+    position:relative;
+    width: min(78vw, 260px);
+    aspect-ratio: 720 / 1153;
+    margin: 2.6rem 0 1.6rem;
+    perspective: 1400px;
+  }
+  .stage.landscape{
+    width: min(92vw, 340px);
+    aspect-ratio: 960 / 599;
+  }
+
+  .deco{
+    position:absolute;
+    inset:0;
+    border-radius:16px;
+    background: radial-gradient(circle at 50% 32%, #6b4f34 0%, #3c2c1f 62%, #150f0a 100%);
+    border:1px solid rgba(242,232,216,0.18);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    transition: transform .5s ease, opacity .5s ease;
+  }
+  .deco1{ transform: rotate(-9deg) translate(-10px, 6px); }
+  .deco2{ transform: rotate(7deg) translate(10px, 4px); }
+  .stage.drawn .deco{ opacity:0; transform: scale(0.9) translateY(10px); }
+
+  @keyframes shuffleJitter{
+    0%   { transform: rotate(-9deg) translate(-10px, 6px); }
+    20%  { transform: rotate(10deg) translate(14px, -2px); }
+    40%  { transform: rotate(-12deg) translate(-16px, 3px); }
+    60%  { transform: rotate(8deg) translate(12px, -4px); }
+    80%  { transform: rotate(-6deg) translate(-8px, 2px); }
+    100% { transform: rotate(-9deg) translate(-10px, 6px); }
+  }
+  @keyframes shuffleJitter2{
+    0%   { transform: rotate(7deg) translate(10px, 4px); }
+    20%  { transform: rotate(-10deg) translate(-14px, -3px); }
+    40%  { transform: rotate(11deg) translate(15px, 2px); }
+    60%  { transform: rotate(-8deg) translate(-11px, -4px); }
+    80%  { transform: rotate(6deg) translate(8px, 3px); }
+    100% { transform: rotate(7deg) translate(10px, 4px); }
+  }
+  .stage.shuffling .deco1{ animation: shuffleJitter 0.9s ease-in-out; }
+  .stage.shuffling .deco2{ animation: shuffleJitter2 0.9s ease-in-out; }
+  .stage.shuffling .card{ animation: shuffleJitter 0.9s ease-in-out; }
+
+  .card{
+    position:absolute;
+    inset:0;
+    border-radius:16px;
+    overflow:hidden;
+    cursor:pointer;
+    background: radial-gradient(circle at 50% 32%, #6b4f34 0%, #3c2c1f 62%, #150f0a 100%);
+    border:1px solid rgba(242,232,216,0.25);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition: transform .28s ease;
+    transform-style: preserve-3d;
+  }
+  .card.flipping{ transition: transform .26s cubic-bezier(.4,0,.2,1); }
+
+  .card-face{
+    position:absolute;
+    inset:0;
+    width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .card-face img{
+    width:100%; height:100%; object-fit:cover; display:block;
+  }
+
+  .facedown-mark{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.9rem;
+  }
+  .facedown-mark img{ width:44%; opacity:0.9; }
+
+  .card:not(.can-tap){ cursor:default; }
+
+  .hint{
+    margin-top:0.2rem;
+    min-height:1.4em;
+    font-size:0.82rem;
+    letter-spacing:0.06em;
+    color:#d8c3a0;
+    opacity:0;
+    transition: opacity .4s ease;
+  }
+  .hint.show{ opacity:1; }
+
+  .cta-btn{
+    margin-top:1.6rem;
+    display:inline-block;
+    background:#f2e8d8;
+    color:#3c2c1f;
+    border:none;
+    padding:1rem 3rem;
+    font-size:0.9rem;
+    letter-spacing:0.2em;
+    font-family:inherit;
+    cursor:pointer;
+    transition: transform .3s ease, box-shadow .3s ease, opacity .3s ease;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.25);
+  }
+  .cta-btn:hover{ transform: translateY(-2px); box-shadow: 0 8px 40px rgba(0,0,0,0.35); }
+  .cta-btn:active{ transform: translateY(0); }
+  .cta-btn.ghost{
+    background:transparent;
+    color:#f2e8d8;
+    border:1px solid rgba(242,232,216,0.5);
+    box-shadow:none;
+  }
+  .cta-btn[hidden]{ display:none; }
+
+  .actions{
+    margin-top:1.6rem;
+    display:flex;
+    gap:0.9rem;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="brand-mark">
+    <div class="mark">00:00</div>
+    <div class="tagline">A New Day</div>
+  </div>
+  <a href="index.html" class="back-link">← 回首頁</a>
+</header>
+
+<main>
+  <div class="eyebrow">Today's Message</div>
+  <h1 id="titleText">今日訊息</h1>
+  <p class="sub" id="subText">靜下心，點選卡牌，抽一張屬於今天的訊息</p>
+
+  <div class="stage" id="stage">
+    <div class="deco deco1"></div>
+    <div class="deco deco2"></div>
+    <div class="card" id="card">
+      <div class="card-face" id="cardFace">
+        <div class="facedown-mark">
+          <img src="assets/logo-mark.png" alt="00:00">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="hint" id="hint"></p>
+
+  <button class="cta-btn" id="drawBtn" type="button">抽一張今日訊息卡</button>
+
+  <div class="actions">
+    <button class="cta-btn ghost" id="againBtn" type="button" hidden>再抽一張</button>
+  </div>
+</main>
+
+<script>
+  const TOTAL_CARDS = 10;
+  const stage = document.getElementById('stage');
+  const card = document.getElementById('card');
+  const cardFace = document.getElementById('cardFace');
+  const drawBtn = document.getElementById('drawBtn');
+  const againBtn = document.getElementById('againBtn');
+  const hint = document.getElementById('hint');
+  const titleText = document.getElementById('titleText');
+  const subText = document.getElementById('subText');
+
+  const FACEDOWN_HTML = `
+    <div class="facedown-mark">
+      <img src="assets/logo-mark.png" alt="00:00">
+    </div>`;
+
+  let state = 'idle'; // idle -> revealing -> front -> back
+  let lastDrawn = null;
+
+  function pickCard(){
+    let n;
+    do { n = 1 + Math.floor(Math.random() * TOTAL_CARDS); }
+    while (TOTAL_CARDS > 1 && n === lastDrawn);
+    lastDrawn = n;
+    return n;
+  }
+
+  function flipCardTo(renderFn, { instant } = {}){
+    return new Promise(resolve => {
+      if (instant){
+        renderFn();
+        resolve();
+        return;
+      }
+      card.classList.add('flipping');
+      card.style.transform = 'rotateY(90deg) scale(0.96)';
+      setTimeout(() => {
+        renderFn();
+        card.style.transform = 'rotateY(0deg) scale(1)';
+        setTimeout(resolve, 260);
+      }, 260);
+    });
+  }
+
+  function renderFacedown(){
+    cardFace.innerHTML = FACEDOWN_HTML;
+  }
+
+  function renderFront(n){
+    cardFace.innerHTML = `<img src="assets/cards/card-${String(n).padStart(2,'0')}-front.jpg" alt="00:00 能量卡 第${n}張 正面">`;
+  }
+
+  function renderBack(n){
+    cardFace.innerHTML = `<img src="assets/cards/card-${String(n).padStart(2,'0')}-back.jpg" alt="00:00 能量卡 第${n}張 今日訊息">`;
+  }
+
+  async function startDraw(){
+    if (state !== 'idle') return;
+    state = 'drawing';
+    drawBtn.disabled = true;
+    hint.classList.remove('show');
+    subText.textContent = '洗牌中…靜心感受此刻';
+
+    stage.classList.add('shuffling');
+    await new Promise(r => setTimeout(r, 900));
+    stage.classList.remove('shuffling');
+    stage.classList.add('drawn');
+
+    const n = pickCard();
+    await flipCardTo(() => renderFront(n));
+
+    state = 'front';
+    card.classList.add('can-tap');
+    titleText.textContent = '今日訊息';
+    subText.textContent = '這是屬於你今天的一張卡';
+    hint.textContent = '輕觸卡牌，翻開今日訊息 →';
+    hint.classList.add('show');
+    drawBtn.hidden = true;
+    againBtn.hidden = true;
+
+    card.dataset.drawn = n;
+  }
+
+  async function revealBack(){
+    if (state !== 'front') return;
+    state = 'back';
+    card.classList.remove('can-tap');
+    const n = parseInt(card.dataset.drawn, 10);
+    await flipCardTo(() => { stage.classList.add('landscape'); renderBack(n); });
+
+    hint.classList.remove('show');
+    subText.textContent = '願這份訊息，陪你度過今天';
+    againBtn.hidden = false;
+  }
+
+  function resetDeck(){
+    state = 'idle';
+    stage.classList.remove('drawn');
+    card.classList.remove('can-tap');
+    flipCardTo(() => { stage.classList.remove('landscape'); renderFacedown(); });
+    titleText.textContent = '今日訊息';
+    subText.textContent = '靜下心，點選卡牌，抽一張屬於今天的訊息';
+    hint.classList.remove('show');
+    drawBtn.hidden = false;
+    drawBtn.disabled = false;
+    againBtn.hidden = true;
+  }
+
+  drawBtn.addEventListener('click', startDraw);
+  againBtn.addEventListener('click', resetDeck);
+  card.addEventListener('click', () => {
+    if (state === 'front') revealBack();
+  });
+</script>
+
+</body>
+</html>
